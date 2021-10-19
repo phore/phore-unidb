@@ -36,7 +36,7 @@ class UniDb
     public function with(string $table) : self
     {
         $unidb = clone($this);
-        if (strpos("\\", $table) !== false)
+        if (strpos($table, "\\") !== false)
             $table = $this->schema->getSchema(class: $table)->tableName;
         $unidb->preselectedTable = $table;
         return $unidb;
@@ -83,6 +83,7 @@ class UniDb
     }
 
     /**
+     *
      * @param null $stmt
      * @param string|null $table
      * @param int|null $page
@@ -90,11 +91,13 @@ class UniDb
      * @param string|null $orderBy
      * @param string $orderType
      * @param string|bool $cast
+     * @param string[]|null $select
+     * @param bool $pkOnly      Return only the plain PrimaryKey
      * @return \Generator
      */
     public function query(
         $stmt = null, string $table = null, ?int $page = null, ?int $limit = null,
-        ?string $orderBy = null, string $orderType="ASC", string|bool $cast = false) : \Generator
+        ?string $orderBy = null, string $orderType="ASC", string|bool $cast = false, array $select = null, bool $pkOnly = false) : \Generator
     {
         if ($page !== null && $limit === null)
             throw new \InvalidArgumentException("If 'limit' argument is required if 'page' argument is set.");
@@ -104,11 +107,19 @@ class UniDb
 
         $this->result = $this->driver->query(
             $this->getTableName($table),
-            $stmt, $page, $limit, $orderBy, $orderType
+            $stmt, $page, $limit, $orderBy, $orderType, $select, $pkOnly
         );
         return $this->result->each($cast);
     }
 
 
+    public function import(
+        string $zipfile = null,
+        string $path = null,
+        array $strategy = []
+    )
+    {
+
+    }
 
 }

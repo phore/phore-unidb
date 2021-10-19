@@ -1,13 +1,13 @@
 <?php
 
 
-namespace Phore\UniDb\Driver\Sqlite;
+namespace Phore\UniDb\Driver\PDO;
 
 
 use Phore\UniDb\Schema\TableSchema;
 use Phore\UniDb\UniDbResult;
 
-class SqliteDriverResult implements UniDbResult
+class PdoDriverResult implements UniDbResult
 {
 
     public function __construct(
@@ -16,7 +16,8 @@ class SqliteDriverResult implements UniDbResult
         private ?int $page,
         private ?int $limit,
         private ?int $pagesTotal,
-        private ?int $datasetsTotal
+        private ?int $datasetsTotal,
+        private bool $pkOnly
     ){}
 
 
@@ -26,11 +27,19 @@ class SqliteDriverResult implements UniDbResult
     public function each(string|bool $cast = false) : \Generator
     {
         while ($data = $this->statement->fetch(\PDO::FETCH_ASSOC)) {
-            $entity = json_decode($data[$this->tableSchema->getDataCol()]);
+            if ($this->pkOnly === true) {
+                yield $data[$this->tableSchema->getPkCol()];
+                continue;
+            }
+            if ($this->tableSchema->getDataCol() !== null) {
+                $entity = json_decode($data[$this->tableSchema->getDataCol()], true);
+            } else {
+                $entity = $data;
+            }
             if ($cast !== false) {
                 if ( ! function_exists("phore_hydrate"))
                     throw new \InvalidArgumentException("Library 'phore/hydrator' is required for object casting.");
-                $castClass = $this->tableSchema["class"] ?? null;
+                $castClass = $this->tableSchema->getClass();
                 if (is_string($cast))
                     $castClass = $cast;
                 $entity = phore_hydrate($entity, $castClass);

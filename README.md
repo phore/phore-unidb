@@ -43,6 +43,12 @@ foreach ($userTbl->query(stmt: new OrStmt(["user_id", "=", "Bob"], ["user_id", "
 composer require phore/unidb
 ```
 
+| Driver                  | Class                       | Features                           |
+|-------------------------|-----------------------------|------------------------------------|
+| SqliteDriver            | `SqliteDriver`              | Schema create                      |
+
+
+
 ## Defining the schema
 
 UniDb requires basic information about the schema to run queries against.
@@ -100,7 +106,7 @@ foreach ($odb->query(table: "User", cast: User::class) as $obj) {
 }
 ```
 
-[See details manual page for Object casting]()
+[See details manual page for Object casting](doc/doc_object_casting.md)
 
 
 ***Quering all data of a table***
@@ -112,8 +118,47 @@ $odb->query(table: "User")
 ***Sorting the data***
 
 
+## Statements
+
+To be compatible to as well SQL and NoSql Databases, UniDb uses Statements to query data.
+By default statements will be chained by AND statements.
+
+***AND Statement***
+
+```php 
+new AndStmt(["name", "=", "Bob"], ["user_name", "=", "bob1"]);
+// => SELECT ... WHERE name='Bob' AND name='Alice'
+```
+
+***OR Statement***
+
+```php 
+new OrStmt(["name", "=", "Bob"], ["name", "=", "Alice"]);
+// => SELECT ... WHERE name='Bob' OR name='Alice'
+```
+
+***Nested Statements***
+
+```php 
+new AndStmt(["name", "=", "Bob"], new OrStmt(["name", "=", "Bob"], ["name", "=", "Alice"]));
+// => SELECT ... WHERE name='Bob' AND ( name='Bob' OR name='Alice' )
+```
+
+
+***Operators***
+
+| Operator       | Expected Value         | Description                                  |
+|----------------|------------------------|----------------------------------------------|
+| `=`            | string|int|bool|null   | Equals operator                              |
+| `<>`            | string|int|bool|null  | Not Equals operator                         |
+| `>`            | string|int|bool        | Bigger than operator                         |
+| `<`            | string|int|bool        | Smaller than operator                        |
+| `~`            | string                 | Like operator                                |
+| `IN`           | array                  | 
 
 
 ## CRUD Operations
 
+## Batch Update
 
+UniDb comes with buildin syncronisation methods to initialize and update records 
