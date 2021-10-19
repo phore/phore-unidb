@@ -18,6 +18,11 @@ class TableSchema
         return $this->tableSchema["pk_col"] ?? lcfirst($this->tableName) . "_id";
     }
 
+    public function getClass() : ?string
+    {
+        return $this->tableSchema["class"] ?? null;
+    }
+
     public function getIndexes() : array
     {
         return $this->tableSchema["indexes"] ?? [];

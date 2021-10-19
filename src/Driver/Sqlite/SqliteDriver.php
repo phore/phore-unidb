@@ -97,32 +97,55 @@ class SqliteDriver implements Driver
         $this->PDO->exec($sqlStmt);
     }
 
-    public function delete($table, $stmt)
+    public function delete($table, $stmt = null, string $pk = null, $data = null)
     {
-
+        $schema = $this->schema->getSchema($table);
+        if ($schema->getPkCol() !== null) {
+            $sqlStmt = "DELETE FROM $table  WHERE {$schema->getPkCol()}=" . $this->PDO->quote($s);
+        }
     }
 
-    public function query(string $table, $stmt) : \Generator
+    public function query(
+        string $table, $stmt = null, ?int $page = null, ?int $limit = null,
+        ?string $orderBy = null, string $orderType="ASC"
+    ) : SqliteDriverResult
     {
         if ( ! $stmt instanceof Stmt)
             $stmt = new Stmt($stmt);
 
-        $schema = $this->schema->getSchema($table);
+        $tableSchema = $this->schema->getSchema($table);
 
-        $sql = "SELECT * FROM $table WHERE " . $stmt->parseSql($this->PDO);
+        $pagesTotal = null;
+        $datasetsTotal = null;
+        $limitSql = "";
+        if ($limit !== null && $limit > 0) {
+            $sql = "SELECT COUNT(*) FROM $table WHERE " . $stmt->parseSql($this->PDO);
+            $this->lastQuery = $sql;
+            try {
+                $query = $this->PDO->query($sql);
+            } catch (\PDOException $e) {
+                throw new \InvalidArgumentException("Query failed: '$stmt' error: {$e->getMessage()}", (int)$e->getCode());
+            }
+            $datasetsTotal = $query->fetch()[0];
+
+            $pagesTotal = ceil($datasetsTotal / $limit);
+
+            $limitSql = " LIMIT " . (($page - 1) * $limit) . ",$limit";
+        }
+
+
+        $sql = "SELECT * FROM $table WHERE " . $stmt->parseSql($this->PDO) . $limitSql;
         $this->lastQuery = $sql;
 
-        try {
 
+
+        try {
             $query = $this->PDO->query($sql);
-            //$query->execute();
         } catch (\PDOException $e) {
             throw new \InvalidArgumentException("Query failed: '$stmt' error: {$e->getMessage()}", (int)$e->getCode());
         }
 
-        while ($data = $query->fetch(\PDO::FETCH_ASSOC)) {
-            yield json_decode($data[$schema->getDataCol()]);
-        }
+        return new SqliteDriverResult($query, $tableSchema, $page, $limit, $pagesTotal, $datasetsTotal);
     }
 
 

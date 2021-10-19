@@ -22,13 +22,31 @@ class SqliteDriverTest extends TestCase
 
         $udb->createSchema();;
 
-        $udb->insert("Tbl1", ["tbl1_id"=>"wurst", "data" => "abc"]);
-        $udb->update("Tbl1", ["tbl1_id"=>"wurst", "data" => "abcd"]);
+        $udb->insert(["tbl1_id"=>"wurst", "data" => "abc"], "Tbl1");
+        $udb->update(["tbl1_id"=>"wurst", "data" => "abcd"], "Tbl1");
 
-        foreach ($udb->query("Tbl1", new Stmt(["tbl1_id", "=", "wurst"])) as $data) {
+        foreach ($udb->query(table: "Tbl1", stmt: new Stmt(["tbl1_id", "=", "wurst"])) as $data) {
             print_R ($data);
         }
+    }
+
+
+    public function testExtendedDoc()
+    {
+        $udb = new UniDb(new SqliteDriver(new \PDO("sqlite::memory:")), new Schema([
+            "Tbl1" => []
+        ]));
+
+        $udb->createSchema();;
+
+        $udb->insert(["tbl1_id"=>"wurst", "data" => "abc"], "Tbl1");
+        $udb->insert(["tbl1_id"=>"wurst123", "data" => "abcd"], "Tbl1");
+
+        $udb->query(table: "Tbl1", stmt: new Stmt(["tbl1_id", "<>", ""]), limit: 1, page: 1);
+
+        print_r($udb->result->getResult());
 
     }
+
 
 }

@@ -13,10 +13,12 @@
     ],
     "require": {
         "php": ">=8.0"
+
     },
 
     "require-dev": {
-        "phore/tester": "*"
+        "phore/tester": "*",
+        "phore/hydrator": "*"
     },
     "autoload": {
         "psr-4": {
