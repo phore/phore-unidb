@@ -26,7 +26,8 @@ class Schema
     {
         if ($class !== null)
             $table = $this->classToTableName[$class] ?? throw new \InvalidArgumentException("No table schema mapped to class '$class'");
-        return new TableSchema($table, $this->schema[$table]) ?? throw new \InvalidArgumentException("No schema defined for table '$table'");
+        $schemaDef = $this->schema[$table] ?? throw new \InvalidArgumentException("No schema defined for table '$table'");
+        return new TableSchema($table, $schemaDef);
     }
 
     public function getTableNames () : array

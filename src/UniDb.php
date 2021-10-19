@@ -42,9 +42,9 @@ class UniDb
         return $unidb;
     }
 
-    public function createSchema()
+    public function createSchema() : string
     {
-        $this->driver->createSchema();
+        return $this->driver->createSchema();
     }
 
     protected function getTableName(string $table = null, $data = null) : string
@@ -82,9 +82,19 @@ class UniDb
         );
     }
 
+    /**
+     * @param null $stmt
+     * @param string|null $table
+     * @param int|null $page
+     * @param int|null $limit
+     * @param string|null $orderBy
+     * @param string $orderType
+     * @param string|bool $cast
+     * @return \Generator
+     */
     public function query(
         $stmt = null, string $table = null, ?int $page = null, ?int $limit = null,
-        ?string $orderBy = null, string $orderType="ASC") : \Generator
+        ?string $orderBy = null, string $orderType="ASC", string|bool $cast = false) : \Generator
     {
         if ($page !== null && $limit === null)
             throw new \InvalidArgumentException("If 'limit' argument is required if 'page' argument is set.");
@@ -96,7 +106,7 @@ class UniDb
             $this->getTableName($table),
             $stmt, $page, $limit, $orderBy, $orderType
         );
-        return $this->result->each();
+        return $this->result->each($cast);
     }
 
 

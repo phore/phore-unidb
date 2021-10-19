@@ -11,7 +11,12 @@ interface Driver
 
     public function setSchema(Schema $schema);
 
-    public function createSchema();
+    /**
+     * Create the schema and apply it to the database
+     *
+     * @return string The generated schema
+     */
+    public function createSchema() : string;
 
     public function insert ($table, $data);
     public function update ($table, $data);

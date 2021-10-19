@@ -11,26 +11,29 @@ class SqliteDriverResult implements UniDbResult
 {
 
     public function __construct(
-        public \PDOStatement $statement,
-        public TableSchema $tableSchema,
-        public ?int $page,
-        public ?int $limit,
-        public ?int $pagesTotal,
-        public ?int $datasetsTotal
+        private \PDOStatement $statement,
+        private TableSchema $tableSchema,
+        private ?int $page,
+        private ?int $limit,
+        private ?int $pagesTotal,
+        private ?int $datasetsTotal
     ){}
 
 
 
 
 
-    public function each(bool $cast = false) : \Generator
+    public function each(string|bool $cast = false) : \Generator
     {
         while ($data = $this->statement->fetch(\PDO::FETCH_ASSOC)) {
             $entity = json_decode($data[$this->tableSchema->getDataCol()]);
-            if ($cast === true) {
+            if ($cast !== false) {
                 if ( ! function_exists("phore_hydrate"))
                     throw new \InvalidArgumentException("Library 'phore/hydrator' is required for object casting.");
-                $entity = phore_hydrate($entity, $data);
+                $castClass = $this->tableSchema["class"] ?? null;
+                if (is_string($cast))
+                    $castClass = $cast;
+                $entity = phore_hydrate($entity, $castClass);
             }
             yield $entity;
         }
@@ -54,4 +57,23 @@ class SqliteDriverResult implements UniDbResult
         return $result;
     }
 
+    public function getPage(): ?int
+    {
+        return $this->page;
+    }
+
+    public function getLimit(): ?int
+    {
+        return $this->limit;
+    }
+
+    public function getPagesTotal(): ?int
+    {
+        return $this->pagesTotal;
+    }
+
+    public function getCount(): ?int
+    {
+        return $this->datasetsTotal;
+    }
 }
