@@ -19,7 +19,6 @@ class Schema
     ){
         foreach ($this->schema as $key => $value) {
             if (is_int($key) && is_string($value)) {
-                echo $value;
                 $this->tableSchemas[$value] = null;
                 continue;
             }
@@ -64,6 +63,14 @@ class Schema
             $ret[] = $this->getSchema($key);
         }
         return $ret;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getSchemaKeys() : array
+    {
+        return array_keys($this->tableSchemas);
     }
 
 }

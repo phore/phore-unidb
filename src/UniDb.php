@@ -4,6 +4,7 @@
 namespace Phore\UniDb;
 
 
+use Phore\UniDb\Helper\Exporter;
 use Phore\UniDb\Schema\Schema;
 
 class UniDb
@@ -113,6 +114,11 @@ class UniDb
         return $this->result->each($cast);
     }
 
+
+    public function exporter() : Exporter
+    {
+        return new Exporter($this);
+    }
 
     public function import(
         string $zipfile = null,

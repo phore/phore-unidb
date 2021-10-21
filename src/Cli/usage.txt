@@ -1,0 +1,9 @@
+UniDb Cli
+
+Usage
+    unidbcli [-i <includefile>] <command>
+
+Commands:
+
+    export <path>
+
