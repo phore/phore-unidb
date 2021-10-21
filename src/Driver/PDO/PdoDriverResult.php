@@ -17,7 +17,7 @@ class PdoDriverResult implements UniDbResult
         private ?int $limit,
         private ?int $pagesTotal,
         private ?int $datasetsTotal,
-        private bool $pkOnly
+        private bool $selectFirstElement = false
     ){}
 
 
@@ -26,13 +26,20 @@ class PdoDriverResult implements UniDbResult
 
     public function each(string|bool $cast = false) : \Generator
     {
+        if ($this->selectFirstElement) {
+            while ($data = $this->statement->fetch(\PDO::FETCH_COLUMN)) {
+                yield $data[0];
+            }
+            return;
+        }
+
         while ($data = $this->statement->fetch(\PDO::FETCH_ASSOC)) {
-            if ($this->pkOnly === true) {
-                yield $data[$this->tableSchema->getPkCol()];
+            if ($this->selectFirstElement === true) {
+                yield $data[$this->tableSchema->getPkCols()];
                 continue;
             }
-            if ($this->tableSchema->getDataCol() !== null) {
-                $entity = json_decode($data[$this->tableSchema->getDataCol()], true);
+            if ($this->tableSchema->getJsonDataCol() !== null) {
+                $entity = json_decode($data[$this->tableSchema->getJsonDataCol()], true);
             } else {
                 $entity = $data;
             }

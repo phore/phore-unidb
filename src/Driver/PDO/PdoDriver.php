@@ -38,47 +38,73 @@ class PdoDriver implements Driver
         $keys = [];
         $values = [];
 
-        $keys[] = $schema->getPkCol();
-        $values[] = $this->PDO->quote($data[$schema->getPkCol()]);
-
-        foreach ($schema->getIndexes() as $indexCol) {
-            $keys[] = $indexCol;
-            $values[] = $this->PDO->quote($data[$indexCol]);
+        foreach ($schema->getPkCols() as $pkCol) {
+            $keys[] = $pkCol;
+            $values[] = ":$pkCol";
         }
 
-        $keys[] = $schema->getDataCol();
-        $values[] = $this->PDO->quote(
-            json_encode($data,  JSON_PRESERVE_ZERO_FRACTION|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE)
+        $colums = array_unique(
+            array_merge(
+                array_keys($schema->getIndexCols()),
+                array_keys($schema->getColums())
+            )
         );
+
+        foreach ($colums as $indexCol) {
+            $keys[] = $indexCol;
+            $values[] = ":" . $indexCol;
+        }
+
+        if ($schema->getJsonDataCol() !== null) {
+            $keys[] = $schema->getJsonDataCol();
+            $values[] = ":" . $schema->getJsonDataCol();
+        }
+
         return [$keys, $values];
     }
 
 
+    /**
+     * @var \PDOStatement[]
+     */
+    private $stmtCache_Insert = [];
+
     public function insert ($table, $data)
     {
-        $schema = $this->schema->getSchema($table);
+        if ( ! isset ($this->stmtCache_Insert[$table])) {
+            $schema = $this->schema->getSchema($table);
 
-        [$keys, $values] = $this->buildKeyValueArr($schema, (array)$data);
+            [$keys, $values] = $this->buildKeyValueArr($schema, (array)$data);
 
-        $sqlStmt = "INSERT INTO " . $table . " (" . implode(", ", $keys) . ") VALUES (" . implode(", ",
-                $values) . ");";
+            $sqlStmt = "INSERT INTO {$schema->getTableName()} (" . implode(", ", $keys) . ") VALUES (" .
+                implode(", ", $values) . ");";
+            $this->stmtCache_Insert[$table] = $this->PDO->prepare($sqlStmt);
+        }
 
-        $this->lastQuery = $sqlStmt;
-        $this->PDO->exec($sqlStmt);
-
+        $stmt = $this->stmtCache_Insert[$table];
+        $this->lastQuery = $stmt->queryString;
+        $stmt->execute((array)$data);
     }
 
+    /**
+     * @var \PDOStatement[]
+     */
+    private $stmtCache_Update = [];
     public function update ($table, $data)
     {
-        $schema = $this->schema->getSchema($table);
+        if ( ! isset ($this->stmtCache_Update[$table])) {
+            $schema = $this->schema->getSchema($table);
 
-        [$keys, $values] = $this->buildKeyValueArr($schema, (array)$data);
+            [$keys, $values] = $this->buildKeyValueArr($schema, (array)$data);
 
-        $sqlStmt = "REPLACE INTO " . $table . " (" . implode(", ", $keys) . ") VALUES (" . implode(", ",
-                $values) . ");";
+            $sqlStmt = "REPLACE INTO {$schema->getTableName()} (" . implode(", ", $keys) . ") VALUES (" . implode(", ",
+                    $values) . ");";
+            $this->stmtCache_Update[$table] = $this->PDO->prepare($sqlStmt);
+        }
 
-        $this->lastQuery = $sqlStmt;
-        $this->PDO->exec($sqlStmt);
+        $stmt = $this->stmtCache_Update[$table];
+        $this->lastQuery = $stmt->queryString;
+        $stmt->execute((array)$data);
     }
 
     public function delete($table, $stmt = null, string $pk = null, $data = null)
@@ -107,7 +133,7 @@ class PdoDriver implements Driver
         $datasetsTotal = null;
         $limitSql = "";
         if ($limit !== null && $limit > 0) {
-            $sql = "SELECT COUNT(*) FROM {$table} {$stmtSql}" ;
+            $sql = "SELECT COUNT(*) FROM {$tableSchema->getTableName()} {$stmtSql}" ;
             $this->lastQuery = $sql;
             try {
                 $query = $this->PDO->query($sql);
@@ -124,11 +150,21 @@ class PdoDriver implements Driver
         $selectSql = "*";
         if (is_array($select))
             $selectSql = implode(",", $select);
-        if ($pkOnly === true)
-            $selectSql = $tableSchema->getPkCol();
+
+        $selectFirstElement = false;
+        if ($pkOnly === true) {
+            $pkCols = $tableSchema->getPkCols();
+            if (count ($pkCols) === 0)
+                throw new \InvalidArgumentException("pkOnly select not possible: Table '$table' has not Primary Key defined.");
+            if (count ($pkCols) === 1)
+                $selectFirstElement = true;
+
+            $selectSql = implode(", ", $tableSchema->getPkCols());
+        }
 
 
-        $sql = "SELECT {$selectSql} FROM $table $stmtSql $limitSql";
+
+        $sql = "SELECT {$selectSql} FROM {$tableSchema->getTableName()} $stmtSql $limitSql";
         $this->lastQuery = $sql;
 
 
@@ -136,10 +172,10 @@ class PdoDriver implements Driver
         try {
             $query = $this->PDO->query($sql);
         } catch (\PDOException $e) {
-            throw new \InvalidArgumentException("Query failed: '$stmt' error: {$e->getMessage()}", (int)$e->getCode());
+            throw new \InvalidArgumentException("Query failed: '$sql' error: {$e->getMessage()}", (int)$e->getCode());
         }
 
-        return new PdoDriverResult($query, $tableSchema, $page, $limit, $pagesTotal, $datasetsTotal, $pkOnly);
+        return new PdoDriverResult($query, $tableSchema, $page, $limit, $pagesTotal, $datasetsTotal, $selectFirstElement);
     }
 
 

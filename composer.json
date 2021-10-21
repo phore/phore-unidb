@@ -29,11 +29,15 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Test\\": "test"
         }
     },
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
         }
+    },
+    "config": {
+        "preferred-install": "source"
     }
 }

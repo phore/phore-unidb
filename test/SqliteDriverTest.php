@@ -17,7 +17,12 @@ class SqliteDriverTest extends TestCase
     {
 
         $udb = new UniDb(new SqliteDriver(new \PDO("sqlite::memory:")), new Schema([
-            "Tbl1" => []
+            "Tbl1" => [
+                "columns" => [
+                    "tbl1_id" => "string",
+                    "data" => "text"
+                ]
+            ]
         ]));
 
         $udb->createSchema();;
@@ -34,7 +39,12 @@ class SqliteDriverTest extends TestCase
     public function testExtendedDoc()
     {
         $udb = new UniDb(new SqliteDriver(new \PDO("sqlite::memory:")), new Schema([
-            "Tbl1" => []
+            "Tbl1" => [
+                "columns" => [
+                    "tbl1_id" => "string",
+                    "data" => "text"
+                ]
+            ]
         ]));
 
         $udb->createSchema();;

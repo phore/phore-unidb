@@ -33,12 +33,12 @@ class UniDb
      * @param string $table Table or ClassName to select as default
      * @return $this
      */
-    public function with(string $table) : self
+    public function with(string $tableOrClass) : self
     {
+        if ( ! $this->schema->isDefined($tableOrClass))
+            throw new \InvalidArgumentException("Undefined in schema: Table or class '$tableOrClass'.");
         $unidb = clone($this);
-        if (strpos($table, "\\") !== false)
-            $table = $this->schema->getSchema(class: $table)->tableName;
-        $unidb->preselectedTable = $table;
+        $unidb->preselectedTable = $tableOrClass;
         return $unidb;
     }
 
@@ -49,10 +49,11 @@ class UniDb
 
     protected function getTableName(string $table = null, $data = null) : string
     {
-        if ($table === null)
+        if ($table === null && $this->preselectedTable !== null)
             $table = $this->preselectedTable;
-        if ($table === null && is_object($data) && $data !== null)
-            $table = $this->schema->getSchema(class: get_class($data))->tableName;
+        if ($table === null && is_object($data) && $data !== null) {
+            $table = $data::class;
+        }
         if ($table === null)
             throw new \InvalidArgumentException("No table selected.");
         return $table;

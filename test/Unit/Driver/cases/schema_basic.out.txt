@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS Tbl1 (
+  col1 INTEGER,
+  col2 TEXT,
+  col3 VARCHAR(255)
+);

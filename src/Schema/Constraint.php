@@ -4,7 +4,7 @@
 namespace Phore\UniDb\Schema;
 
 
-class Constraint
+interface Constraint
 {
 
 }

@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS Tbl1 (
+  col1 INTEGER,
+  col2 TEXT,
+  PRIMARY KEY(col1 ASC, col2 ASC)
+);
