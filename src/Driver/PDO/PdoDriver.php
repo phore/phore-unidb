@@ -117,7 +117,8 @@ class PdoDriver implements Driver
 
     public function query(
         string $table, $stmt = null, ?int $page = null, ?int $limit = null,
-        ?string $orderBy = null, string $orderType="ASC", array $select = null, bool $pkOnly = false
+        ?string $orderBy = null, string $orderType="ASC", array $select = null, bool $pkOnly = false,
+        ?int &$count = -1
     ) : PdoDriverResult
     {
         $tableSchema = $this->schema->getSchema($table);
@@ -132,7 +133,7 @@ class PdoDriver implements Driver
         $pagesTotal = null;
         $datasetsTotal = null;
         $limitSql = "";
-        if ($limit !== null && $limit > 0) {
+        if (($limit !== null && $limit > 0) || $count !== -1) {
             $sql = "SELECT COUNT(*) FROM {$tableSchema->getTableName()} {$stmtSql}" ;
             $this->lastQuery = $sql;
             try {
@@ -140,11 +141,12 @@ class PdoDriver implements Driver
             } catch (\PDOException $e) {
                 throw new \InvalidArgumentException("Query failed: '$sql' error: {$e->getMessage()}", (int)$e->getCode());
             }
-            $datasetsTotal = $query->fetch()[0];
+            $count = $datasetsTotal = $query->fetch()[0];
 
-            $pagesTotal = ceil($datasetsTotal / $limit);
-
-            $limitSql = " LIMIT " . (($page - 1) * $limit) . ",$limit";
+            if ($limit > 0) {
+                $pagesTotal = ceil($datasetsTotal / $limit);
+                $limitSql = " LIMIT " . (($page - 1) * $limit) . ",$limit";
+            }
         }
 
         $selectSql = "*";

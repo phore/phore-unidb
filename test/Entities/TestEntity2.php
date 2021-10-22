@@ -10,7 +10,7 @@ use Phore\UniDb\Attribute\UniDbEntity;
 class TestEntity2
 {
     public function __construct(
-        public string $entity_id,
+        public ?string $entity_id,
         public string $data1
     ){}
 

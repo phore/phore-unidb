@@ -25,6 +25,7 @@ class SqliteDriver extends Driver\PDO\PdoDriver
         $ret = [];
 
         foreach ($colsToCreate as $colName => $type) {
+            $type = str_replace("?", "", $type);
             if (isset (self::TYPEMAP[$type]))
                 $type = self::TYPEMAP[$type];
             $ret[] = "  {$colName} $type";

@@ -5,6 +5,7 @@ namespace Phore\UniDb;
 
 
 use Phore\UniDb\Helper\Exporter;
+use Phore\UniDb\Helper\IdGenerator;
 use Phore\UniDb\Schema\Schema;
 
 class UniDb
@@ -60,15 +61,30 @@ class UniDb
         return $table;
     }
 
-    public function insert($data, string $table = null)
+    public function insert(object|array $data, string $table = null) : object|array
     {
+        $tableName = $this->getTableName($table, $data);
+
+        $pkCols = $this->schema->getSchema($tableName)->getPkCols();
+        if (count($pkCols) === 1) {
+            $pkName = $pkCols[0];
+            if (is_object($data)) {
+                if ($data->$pkName === null)
+                    $data->$pkName = IdGenerator::guidv4();
+            } else {
+                if ($data[$pkName] === null)
+                    $data[$pkName] = IdGenerator::guidv4();
+            }
+        }
+
         $this->driver->insert(
-            $this->getTableName($table, $data),
+            $tableName,
             $data
         );
+        return $data;
     }
 
-    public function update($data, string $table = null)
+    public function update(object|array $data, string $table = null)
     {
         $this->driver->update(
             $this->getTableName($table),
@@ -76,7 +92,7 @@ class UniDb
         );
     }
 
-    public function delete($data = null, string $table = null, $stmt = null, int $limit = null)
+    public function delete(object|array $data = null, string $table = null, $stmt = null, int $limit = null)
     {
         $this->driver->delete(
             $this->getTableName($table),
@@ -99,7 +115,8 @@ class UniDb
      */
     public function query(
         $stmt = null, string $table = null, ?int $page = null, ?int $limit = null,
-        ?string $orderBy = null, string $orderType="ASC", string|bool $cast = false, array $select = null, bool $pkOnly = false) : \Generator
+        ?string $orderBy = null, string $orderType="ASC", string|bool $cast = false, array $select = null,
+        bool $pkOnly = false, ?int &$count = -1) : \Generator
     {
         if ($page !== null && $limit === null)
             throw new \InvalidArgumentException("If 'limit' argument is required if 'page' argument is set.");
@@ -109,7 +126,7 @@ class UniDb
 
         $this->result = $this->driver->query(
             $this->getTableName($table),
-            $stmt, $page, $limit, $orderBy, $orderType, $select, $pkOnly
+            $stmt, $page, $limit, $orderBy, $orderType, $select, $pkOnly, $count
         );
         return $this->result->each($cast);
     }

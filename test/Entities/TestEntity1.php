@@ -5,6 +5,7 @@ namespace Test\Entities;
 
 
 use Phore\UniDb\Attribute\UniDbEntity;
+use Phore\UniDb\Helper\IdGenerator;
 
 #[UniDbEntity(pk: "entity_id")]
 class TestEntity1
