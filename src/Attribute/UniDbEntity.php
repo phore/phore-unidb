@@ -11,7 +11,6 @@ class UniDbEntity
         public array|string $pk = [],
         public string $pk_create_strategy = "UUID",
         public ?string $table = null,
-        public array $indexes = [],
         public string|null $json_data_col = null
     ){}
 

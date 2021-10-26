@@ -6,7 +6,7 @@ namespace Test\Entities;
 
 use Phore\UniDb\Attribute\UniDbEntity;
 
-#[UniDbEntity(pk: "entity_id")]
+#[UniDbEntity(pk: "entity_id", indexes: )]
 class TestEntity2
 {
     public function __construct(

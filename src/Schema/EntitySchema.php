@@ -6,6 +6,7 @@ namespace Phore\UniDb\Schema;
 
 use Phore\UniDb\Attribute\UniDbColumn;
 use Phore\UniDb\Attribute\UniDbEntity;
+use Phore\UniDb\Attribute\UniDbIndex;
 
 class EntitySchema extends TableSchema
 {
@@ -20,11 +21,18 @@ class EntitySchema extends TableSchema
     public array $propertyToColumnMap = [];
     public array $columnToPropertyMap = [];
 
-    private function getAttribute(\ReflectionClass|\ReflectionProperty $reflection, $className) : ?object
+    private function getAttribute(\ReflectionClass|\ReflectionProperty $reflection, $className, bool $multi=false) : null|object|array
     {
         $attrs = $reflection->getAttributes($className);
         if (count ($attrs) === 0)
             return null;
+        if ($multi === true) {
+            $ret = [];
+            foreach ($attrs as $attr) {
+                $ret[] = $attr->newInstance();
+            }
+            return $ret;
+        }
         return $attrs[0]->newInstance();
     }
 
@@ -71,11 +79,18 @@ class EntitySchema extends TableSchema
             $primaryKeyColums[] = $this->property[$pkProperty]->column;
         }
 
+        $indexes = [];
+        foreach ($this->getAttribute($refClass, UniDbEntity::class, true) as $cur) {
+            $cur instanceof UniDbIndex ?? throw new \InvalidArgumentException();
+
+            $indexes[] = new Index($cur->name, $cur->cols, $cur->type);
+        }
+
         parent::__construct(
             tableName: $this->entity->table,
             pk_col: $primaryKeyColums,
             class: $className,
-            indexCols: $this->entity->indexes,
+            indexCols: $indexes,
             columns: $columns,
             jsonDataCol: $this->entity->json_data_col
         );
