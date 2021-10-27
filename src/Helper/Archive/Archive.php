@@ -6,7 +6,7 @@ interface Archive
 {
     public function list(string $prefix = null) : \Generator|array;
 
-    public function getFileResource(string $path, string $mode="rb");
+    public function getFileResource(string $path);
 
     public function getContents(string $path) : string;
 

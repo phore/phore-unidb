@@ -5,8 +5,12 @@ namespace Phore\UniDb;
 
 
 use Phore\UniDb\Ex\EmptyResultException;
+use Phore\UniDb\Helper\Archive\Archive;
+use Phore\UniDb\Helper\Archive\FilesystemArchive;
 use Phore\UniDb\Helper\Exporter;
 use Phore\UniDb\Helper\IdGenerator;
+use Phore\UniDb\Helper\ImportReport;
+use Phore\UniDb\Helper\IOStrategy\IOStrategy;
 use Phore\UniDb\Schema\Schema;
 use Phore\UniDb\Stmt\Stmt;
 
@@ -194,18 +198,64 @@ class UniDb
     }
 
 
-    public function exporter() : Exporter
+    private function getArchive($zipfile, $path) : Archive
     {
-        return new Exporter($this);
+        if ($path !== null)
+            return new FilesystemArchive($path);
     }
 
+    /**
+     * @param string|null $zipfile
+     * @param string|null $path
+     * @param array $strategies
+     * @param string $alias
+     * @return ImportReport[]
+     */
+    public function export(string $zipfile=null, string $path = null, array $strategies = [], string $alias="default") : array
+    {
+        if ($strategies === null) {
+            $preset = UniDbConfig::getStrategy($alias);
+            if ($preset !== null) {
+                $strategies = $preset["strategies"];
+            }
+        }
+        $ret = [];
+        foreach ($strategies as $tableName =>$strategy) {
+            $strategy instanceof IOStrategy ?? throw new \InvalidArgumentException("Invalid strategy object for table '$tableName'.");
+
+            $ret[$tableName] = $strategy->export($this, $tableName, $this->getArchive($zipfile, $path));
+
+        }
+        return $ret;
+    }
+
+    /**
+     * @param string|null $zipfile
+     * @param string|null $path
+     * @param array $strategies
+     * @param string $alias
+     * @return ImportReport[]
+     */
     public function import(
         string $zipfile = null,
         string $path = null,
-        array $strategy = []
-    )
+        array $strategies = [],
+        string $alias = "default"
+    ) : array
     {
+        if ($strategies === null) {
+            $preset = UniDbConfig::getStrategy($alias);
+            if ($preset !== null) {
+                $strategies = $preset["strategies"];
+            }
+        }
 
+        $ret = [];
+        foreach ($strategies as $tableName => $strategy) {
+            $strategy instanceof IOStrategy ?? throw new \InvalidArgumentException("Invalid strategy object for table '$tableName'.");
+            $ret[$tableName] = $strategy->import($this, $tableName, $this->getArchive($zipfile, $path));
+        }
+        return $ret;
     }
 
 }

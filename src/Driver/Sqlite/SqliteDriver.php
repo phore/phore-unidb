@@ -85,7 +85,7 @@ class SqliteDriver extends Driver\PDO\PdoDriver
         foreach ($this->schema->getAllSchemas() as $tableSchema) {
             $stmts .= "\n" . self::buildCreateTableStmt($tableSchema);
         }
-        echo $stmts;
+
         $this->PDO->exec($stmts);
         return $stmts;
     }

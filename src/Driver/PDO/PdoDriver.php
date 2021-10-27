@@ -76,11 +76,11 @@ class PdoDriver implements Driver
 
             [$keys, $values] = $this->buildKeyValueArr($schema, (array)$data);
 
-            $replaceExisting = "";
+            $replaceSql = "";
             if ($replaceExisting)
-                $replaceSql = "REPLACE ";
+                $replaceSql = "OR REPLACE ";
 
-            $sqlStmt = "INSERT {$replaceExisting}INTO {$schema->getTableName()} (" . implode(", ", $keys) . ") VALUES (" .
+            $sqlStmt = "INSERT {$replaceSql}INTO {$schema->getTableName()} (" . implode(", ", $keys) . ") VALUES (" .
                 implode(", ", $values) . ");";
             $this->stmtCache_Insert[$table] = $this->PDO->prepare($sqlStmt);
         }

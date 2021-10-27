@@ -24,21 +24,22 @@ class Csv
             if ($fileHandle === false)
                 throw new \InvalidArgumentException("Cannot open '$this->fileOrDescriptor' for reading.");
         }
+
         $data = fgetcsv($fileHandle, $length, $this->separator);
         if ($data === false)
             throw new \InvalidArgumentException("Error reading first line from '$this->fileOrDescriptor'");
 
         $mapArray = $data;
 
-        if (count($mapArray) < 2)
-            throw new \InvalidArgumentException("Csv file must contain at least 2 Columns (one separator '$this->separator')");
+        if (count($mapArray) < 1)
+            throw new \InvalidArgumentException("Csv file must contain at least 1 Column (one separator '$this->separator')");
 
         $line = 1;
         while ( ! feof($fileHandle)) {
             $data = fgetcsv($fileHandle, $length, $this->separator);
             $line++;
             if ($data === false)
-                throw new \InvalidArgumentException("Error reading first line from '$this->fileOrDescriptor'");
+                break;
             if ($data === [null])
                 continue;
             $ret = [];

@@ -50,4 +50,22 @@ class UniDbConfig
         return $con["instance"];
     }
 
+    private static $strategies = [];
+
+    public static function defineIO(array $strategies, string $exportFile = null, $importFile=null, string $alias="default")
+    {
+        self::$strategies[$alias] = [
+            "importFile" => $importFile,
+            "exportFile" => $exportFile,
+            "strategies" => $strategies
+        ];
+    }
+
+    public static function getStrategy(string $alias="default") : array|null
+    {
+        if ( ! isset (self::$strategies[$alias]))
+            return null;
+        return self::$strategies[$alias];
+    }
+
 }

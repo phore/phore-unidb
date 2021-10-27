@@ -23,9 +23,11 @@ class FilesystemArchive implements Archive
         return $ret;
     }
 
-    public function getFileResource(string $path, string $mode = "rb")
+    public function getFileResource(string $path)
     {
-        $fd = fopen($this->path . "/". $path, $mode);
+        $file = $this->path . "/". $path;
+        $fd = fopen($file, "r");
+
         if ($fd === false)
             throw new \InvalidArgumentException("Cannot open file '$this->path/$path' in mode '$mode'");
         return $fd;

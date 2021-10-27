@@ -28,11 +28,7 @@ class CsvFileIoStrategy implements IOStrategy
         public ?\Closure $importFilter = null,
         public ?\Closure $exportFilter = null
     ){
-        if ($this->fileExtension === null && $this->fileName === null) {
-            $this->fileExtension = "csv";
-        } else if ($this->fileExtension === null) {
-            $this->fileExtension = pathinfo($this->fileName, PATHINFO_EXTENSION);
-        }
+
     }
 
     public function import(UniDb $uniDb, string $tableName, Archive $srcArchive, callable $progress = null): ImportReport
@@ -42,13 +38,13 @@ class CsvFileIoStrategy implements IOStrategy
 
         $filename = $this->fileName;
         if ($filename === null) {
-            $filename = $tableSchema->getTableName() . "." . $this->fileExtension;
+            $filename = $tableSchema->getTableName() . ".csv";
         }
 
-        $csv = new Csv($srcArchive->getFileResource($this->prefix . "/" . $filename, "w+"), $this->separator);
+        $csv = new Csv($res = $srcArchive->getFileResource($this->prefix . "/" . $filename), $this->separator);
         foreach ($csv->read() as $data) {
             if ($this->importFilter !== null)
-                $data = ($this->importFilter)(data: $data, fileNameId: $fileNameId, file: $file);
+                $data = ($this->importFilter)(data: $data);
 
             if ($data === null)
                 continue;
@@ -60,9 +56,10 @@ class CsvFileIoStrategy implements IOStrategy
             $uniDb->insert($data, $tableName, true);
             $report->recordsProcessed++;
             $report->recordsUpdated++;
-            $progress($report);
+            if ($progress !== null)
+                $progress($report);
         }
-
+        fclose ($res);
 
         return $report;
     }
@@ -90,10 +87,10 @@ class CsvFileIoStrategy implements IOStrategy
                 continue;
 
             if ( ! $headerSend) {
-                fputcsv($csvFp, array_keys($data));
+                fputcsv($csvFp, array_keys($data), $this->separator);
                 $headerSend = true;
             }
-            fputcsv($csvFp, array_values($data));
+            fputcsv($csvFp, array_values($data), $this->separator);
 
             $report->recordsProcessed++;
             if ($progress !== null)
