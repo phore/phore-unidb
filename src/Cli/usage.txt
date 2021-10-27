@@ -6,4 +6,5 @@ Usage
 Commands:
 
     export <path>
+    import <path>
 

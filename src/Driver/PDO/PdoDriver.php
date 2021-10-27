@@ -171,8 +171,6 @@ class PdoDriver implements Driver
         $sql = "SELECT {$selectSql} FROM {$tableSchema->getTableName()} $stmtSql $limitSql";
         $this->lastQuery = $sql;
 
-
-
         try {
             $query = $this->PDO->query($sql);
         } catch (\PDOException $e) {

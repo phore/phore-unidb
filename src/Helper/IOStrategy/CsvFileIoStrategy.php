@@ -75,11 +75,12 @@ class CsvFileIoStrategy implements IOStrategy
         }
         $csvFp = fopen($tempName = tempnam("/tmp", "csvexp"), "wb+");
 
-        $result = $uniDb->query(table: $tableName,  count: $count);
+        $result = $uniDb->query(table: $tableName,  count: $count, cast: $this->validate);
         $report->totalRecords = $count;
 
         $headerSend = false;
         foreach ($result as $data) {
+            print_r ($data);
             if ($this->exportFilter !== null)
                 $data = ($this->exportFilter)($data);
 
@@ -87,10 +88,10 @@ class CsvFileIoStrategy implements IOStrategy
                 continue;
 
             if ( ! $headerSend) {
-                fputcsv($csvFp, array_keys($data), $this->separator);
+                fputcsv($csvFp, array_keys((array)$data), $this->separator);
                 $headerSend = true;
             }
-            fputcsv($csvFp, array_values($data), $this->separator);
+            fputcsv($csvFp, array_values((array)$data), $this->separator);
 
             $report->recordsProcessed++;
             if ($progress !== null)

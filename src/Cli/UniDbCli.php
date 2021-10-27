@@ -25,8 +25,22 @@ class UniDbCli
         if ( ! is_dir($target))
             throw new \InvalidArgumentException("Export target dir is not existing: $target");
         $unidb = UniDbConfig::get();
-        $unidb->exporter()->export(new OneFile(outdir: $target));
+        $result = $unidb->export(path:$target);
+        print_r($result);
+    }
 
+
+    private function import(string $file)
+    {
+        $unidb = UniDbConfig::get();
+        $strategy = UniDbConfig::getStrategy();
+        if ($strategy === null)
+            throw new \InvalidArgumentException("No default strategy defined");
+
+        if (is_dir($file)) {
+            $result = $unidb->import(path: $file);
+        }
+        print_r ($result);
     }
 
     public function main($argv, $argc)
@@ -45,6 +59,10 @@ class UniDbCli
 
                 case "export":
                     $this->export(array_shift($argv));
+                    break;
+
+                case "import":
+                    $this->import(array_shift($argv));
                     break;
 
             }

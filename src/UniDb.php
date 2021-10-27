@@ -211,7 +211,7 @@ class UniDb
      * @param string $alias
      * @return ImportReport[]
      */
-    public function export(string $zipfile=null, string $path = null, array $strategies = [], string $alias="default") : array
+    public function export(string $zipfile=null, string $path = null, array $strategies = null, string $alias="default") : array
     {
         if ($strategies === null) {
             $preset = UniDbConfig::getStrategy($alias);
@@ -239,7 +239,7 @@ class UniDb
     public function import(
         string $zipfile = null,
         string $path = null,
-        array $strategies = [],
+        array $strategies = null,
         string $alias = "default"
     ) : array
     {
