@@ -69,14 +69,18 @@ class PdoDriver implements Driver
      */
     private $stmtCache_Insert = [];
 
-    public function insert ($table, $data)
+    public function insert ($table, $data, bool $replaceExisting = false)
     {
-        if ( ! isset ($this->stmtCache_Insert[$table])) {
+        if ( ! isset ($this->stmtCache_Insert[$table . $replaceExisting])) {
             $schema = $this->schema->getSchema($table);
 
             [$keys, $values] = $this->buildKeyValueArr($schema, (array)$data);
 
-            $sqlStmt = "INSERT INTO {$schema->getTableName()} (" . implode(", ", $keys) . ") VALUES (" .
+            $replaceExisting = "";
+            if ($replaceExisting)
+                $replaceSql = "REPLACE ";
+
+            $sqlStmt = "INSERT {$replaceExisting}INTO {$schema->getTableName()} (" . implode(", ", $keys) . ") VALUES (" .
                 implode(", ", $values) . ");";
             $this->stmtCache_Insert[$table] = $this->PDO->prepare($sqlStmt);
         }
@@ -116,7 +120,7 @@ class PdoDriver implements Driver
     }
 
     public function query(
-        string $table, $stmt = null, ?int $page = null, ?int $limit = null,
+        string $table, Stmt $stmt = null, ?int $page = null, ?int $limit = null,
         ?string $orderBy = null, string $orderType="ASC", array $select = null, bool $pkOnly = false,
         ?int &$count = -1
     ) : PdoDriverResult
@@ -125,8 +129,6 @@ class PdoDriver implements Driver
 
         $stmtSql = "";
         if ($stmt !== null) {
-            if ( ! $stmt instanceof Stmt)
-                $stmt = new Stmt($stmt);
             $stmtSql = " WHERE " . $stmt->parseSql($this->PDO);
         }
 

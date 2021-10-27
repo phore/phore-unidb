@@ -4,9 +4,11 @@
 namespace Phore\UniDb;
 
 
+use Phore\UniDb\Ex\EmptyResultException;
 use Phore\UniDb\Helper\Exporter;
 use Phore\UniDb\Helper\IdGenerator;
 use Phore\UniDb\Schema\Schema;
+use Phore\UniDb\Stmt\Stmt;
 
 class UniDb
 {
@@ -61,7 +63,7 @@ class UniDb
         return $table;
     }
 
-    public function insert(object|array $data, string $table = null) : object|array
+    public function insert(object|array $data, string $table = null, bool $updateExisting = false) : object|array
     {
         $tableName = $this->getTableName($table, $data);
 
@@ -79,7 +81,8 @@ class UniDb
 
         $this->driver->insert(
             $tableName,
-            $data
+            $data,
+            $updateExisting
         );
         return $data;
     }
@@ -124,11 +127,70 @@ class UniDb
         if ( ! in_array($orderType, ["ASC", "DESC"]))
             throw new \InvalidArgumentException("Argument orderType '$orderType' invalid: ASC|DESC");
 
+        if ($stmt !== null) {
+            if ( ! $stmt instanceof Stmt)
+                $stmt = new Stmt($stmt);
+        }
+
         $this->result = $this->driver->query(
             $this->getTableName($table),
             $stmt, $page, $limit, $orderBy, $orderType, $select, $pkOnly, $count
         );
         return $this->result->each($cast);
+    }
+
+
+    /**
+     * Return the first matching result or throw NotFound
+     *
+     * @param $stmt
+     * @param string|null $table
+     * @param bool $cast
+     * @return array|object
+     *@throws EmptyResultException
+     */
+    public function select(array|Stmt $stmt=null, string|array $byPrimaryKey=null, array $byKeyValue=null, string $table=null, bool $cast = false)
+    {
+        $tableSchema = $this->schema->getSchema($this->getTableName($table));
+
+        if ($stmt === null) {
+            $stmt = new Stmt();
+        } else if (is_array($stmt)) {
+            $stmt = new Stmt(...$stmt);
+        }
+        if ($byPrimaryKey !== null) {
+            $pkNames = $tableSchema->getPkCols();
+            if (count ($pkNames) === 1) {
+                if ( ! is_string($byPrimaryKey))
+                    throw new \InvalidArgumentException("Argument byPrimaryKey is expected to be string.");
+                $stmt->append([$pkNames[0], "=", $byPrimaryKey]);
+            } elseif (count ($pkNames) > 1) {
+                if ( ! is_array($byPrimaryKey))
+                    throw new \InvalidArgumentException("Argument byPrimaryKey must be of type array on multi column primary keys");
+                foreach ($pkNames as $pkName) {
+                    if ( ! isset ($byPrimaryKey[$pkName]))
+                        throw new \InvalidArgumentException("Argument byPrimaryKey is missing key '$pkName'");
+                    $stmt->append([$pkName, "=", $byPrimaryKey[$pkName]]);
+                }
+            } else {
+                throw new \InvalidArgumentException("Cannot select byPrimaryKey. No Primary Key defined");
+            }
+        }
+
+        if ($byKeyValue !== null) {
+            foreach ($byKeyValue as $key => $value) {
+                if ( ! is_string($key))
+                    throw new \InvalidArgumentException("Argument byKeyValue must be map.");
+                $stmt->append([$key, "=", $value]);
+            }
+        }
+
+
+
+        $result = $this->query($stmt, table: $table, cast: $cast);
+        foreach ($result as $cur)
+            return $cur;
+        throw new EmptyResultException("Empty result. Query: '" . print_r($stmt, true). "'");
     }
 
 

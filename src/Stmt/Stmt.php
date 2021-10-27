@@ -36,6 +36,11 @@ class Stmt
         return $stmts;
     }
 
+    public function append($stmt)
+    {
+        $this->stmts[] = $stmt;
+    }
+
     public function parseSql(\PDO $pdo) : string
     {
         return (new AndStmt(...$this->stmts))->parseSql($pdo);

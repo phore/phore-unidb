@@ -24,8 +24,7 @@ class EntitySchema extends TableSchema
     private function getAttribute(\ReflectionClass|\ReflectionProperty $reflection, $className, bool $multi=false) : null|object|array
     {
         $attrs = $reflection->getAttributes($className);
-        if (count ($attrs) === 0)
-            return null;
+
         if ($multi === true) {
             $ret = [];
             foreach ($attrs as $attr) {
@@ -33,6 +32,8 @@ class EntitySchema extends TableSchema
             }
             return $ret;
         }
+        if (count ($attrs) === 0)
+            return null;
         return $attrs[0]->newInstance();
     }
 
@@ -80,7 +81,7 @@ class EntitySchema extends TableSchema
         }
 
         $indexes = [];
-        foreach ($this->getAttribute($refClass, UniDbEntity::class, true) as $cur) {
+        foreach ($this->getAttribute($refClass, UniDbIndex::class, true) as $cur) {
             $cur instanceof UniDbIndex ?? throw new \InvalidArgumentException();
 
             $indexes[] = new Index($cur->name, $cur->cols, $cur->type);

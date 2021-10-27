@@ -64,4 +64,9 @@ class TableSchema
     {
         return $this->jsonDataCol;
     }
+
+    public function hydrateEntity(array $input) : object|array
+    {
+        return phore_hydrate($input, $this->class);
+    }
 }

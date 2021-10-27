@@ -5,6 +5,7 @@ namespace Phore\UniDb;
 
 
 use Phore\UniDb\Schema\Schema;
+use Phore\UniDb\Stmt\Stmt;
 
 interface Driver
 {
@@ -18,11 +19,11 @@ interface Driver
      */
     public function createSchema() : string;
 
-    public function insert ($table, $data);
+    public function insert ($table, $data, bool $replaceExisting = false);
     public function update ($table, $data);
 
     public function query(
-        string $table, $stmt = null, ?int $page = null, ?int $limit = null,
+        string $table, Stmt $stmt = null, ?int $page = null, ?int $limit = null,
         ?string $orderBy = null, string $orderType="ASC"
     ) : UniDbResult;
 
