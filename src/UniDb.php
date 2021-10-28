@@ -109,8 +109,9 @@ class UniDb
 
     /**
      *
+     * @template T
      * @param null $stmt
-     * @param string|null $table
+     * @param class-string<T>|string|null $table
      * @param int|null $page
      * @param int|null $limit
      * @param string|null $orderBy
@@ -118,7 +119,7 @@ class UniDb
      * @param string|bool $cast
      * @param string[]|null $select
      * @param bool $pkOnly      Return only the plain PrimaryKey
-     * @return \Generator
+     * @return T[]
      */
     public function query(
         $stmt = null, string $table = null, ?int $page = null, ?int $limit = null,
@@ -147,11 +148,12 @@ class UniDb
     /**
      * Return the first matching result or throw NotFound
      *
+     * @template T
      * @param $stmt
-     * @param string|null $table
+     * @param class-string<T>|string|null $table
      * @param bool $cast
-     * @return array|object
-     *@throws EmptyResultException
+     * @return T|array
+     * @throws EmptyResultException
      */
     public function select(array|Stmt $stmt=null, string|array $byPrimaryKey=null, array $byKeyValue=null, string $table=null, bool $cast = false)
     {
