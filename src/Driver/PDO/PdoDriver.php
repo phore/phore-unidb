@@ -38,17 +38,12 @@ class PdoDriver implements Driver
         $keys = [];
         $values = [];
 
-        foreach ($schema->getPkCols() as $pkCol) {
+        foreach ($schema->getPkColsList() as $pkCol) {
             $keys[] = $pkCol;
             $values[] = ":$pkCol";
         }
 
-        $colums = array_unique(
-            array_merge(
-                array_keys($schema->getIndexCols()),
-                array_keys($schema->getColums())
-            )
-        );
+        $colums = array_keys($schema->getColums());
 
         foreach ($colums as $indexCol) {
             $keys[] = $indexCol;
@@ -82,10 +77,11 @@ class PdoDriver implements Driver
 
             $sqlStmt = "INSERT {$replaceSql}INTO {$schema->getTableName()} (" . implode(", ", $keys) . ") VALUES (" .
                 implode(", ", $values) . ");";
-            $this->stmtCache_Insert[$table] = $this->PDO->prepare($sqlStmt);
+            echo $sqlStmt;
+            $this->stmtCache_Insert[$table . $replaceExisting] = $this->PDO->prepare($sqlStmt);
         }
 
-        $stmt = $this->stmtCache_Insert[$table];
+        $stmt = $this->stmtCache_Insert[$table . $replaceExisting];
         $this->lastQuery = $stmt->queryString;
         $stmt->execute((array)$data);
     }

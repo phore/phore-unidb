@@ -33,7 +33,7 @@ class OneFilePerEntityIoStrategy implements IOStrategy
         $result = new ImportReport();
         $tableSchema = $uniDb->schema->getSchema($tableName);
 
-        foreach ($srcArchive->list($this->prefix) as $file) {
+        foreach ($srcArchive->list($tableSchema->getTableName()) as $file) {
             if (pathinfo($file, PATHINFO_EXTENSION) !== $this->fileExtension) {
                 $result->warnings[] = "Ignoring: '$file' - extension does not match '$this->fileExtension'";
                 continue;
@@ -65,7 +65,8 @@ class OneFilePerEntityIoStrategy implements IOStrategy
             $uniDb->insert($data, $tableName, true);
             $result->recordsProcessed++;
             $result->recordsUpdated++;
-            $progress($result);
+            if ($progress !== null)
+                $progress($result);
         }
         return $result;
     }

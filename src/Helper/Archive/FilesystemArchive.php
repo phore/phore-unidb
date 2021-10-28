@@ -9,16 +9,38 @@ class FilesystemArchive implements Archive
         public string $path
     ){}
 
+
+    private function scandir($dir) : array
+    {
+        $result = [];
+        foreach(scandir($dir) as $filename) {
+            if ($filename === '.' || $filename === "..")
+                continue;
+            $filePath = $dir . '/' . $filename;
+            if (is_dir($filePath)) {
+                foreach ($this->scandir($filePath) as $childFilename) {
+                    $result[] = $childFilename;
+                }
+            } else {
+                $result[] = str_replace("//", "/", $dir . "/" . $filename);
+            }
+        }
+        return $result;
+    }
+
     public function list(string $prefix = null): \Generator|array
     {
-        $files = glob($this->path . "/**");
+        $files = $this->scandir($this->path);
+        print_r ($files);
         if ($files === false)
             throw new \InvalidArgumentException("Cannot read index vom directory: '$this->path'");
         $ret = [];
         foreach ($files as $file) {
-            if ($prefix !== null && ! str_starts_with($file, $prefix))
+            $name = str_replace("//", "/", substr($file, strlen($this->path)));
+            echo $name;
+            if ($prefix !== null && ! str_starts_with($name, $prefix))
                 continue;
-            $ret[] = substr($file, strlen($this->path));
+            $ret[] = $name;
         }
         return $ret;
     }

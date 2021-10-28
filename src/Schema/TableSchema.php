@@ -34,6 +34,11 @@ class TableSchema
         return $this->pk_col;
     }
 
+    public function getPkColsList() : array
+    {
+        return array_keys($this->pk_col);
+    }
+
     public function getClass() : ?string
     {
         return $this->class;
