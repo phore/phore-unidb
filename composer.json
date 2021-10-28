@@ -32,6 +32,9 @@
             "Test\\": "test"
         }
     },
+    "bin": [
+        "bin/unidbcli"
+    ],
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
