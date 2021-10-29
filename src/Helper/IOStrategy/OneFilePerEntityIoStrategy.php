@@ -63,6 +63,7 @@ class OneFilePerEntityIoStrategy implements IOStrategy
                     $data = $tableSchema->hydrateEntity($data);
                 }
 
+                print_r ($data);
                 $uniDb->insert($data, $tableName, true);
                 $result->recordsProcessed++;
                 $result->recordsUpdated++;

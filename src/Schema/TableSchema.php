@@ -36,7 +36,7 @@ class TableSchema
 
     public function getPkColsList() : array
     {
-        return array_keys($this->pk_col);
+        return $this->pk_col;
     }
 
     public function getClass() : ?string

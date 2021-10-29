@@ -45,14 +45,16 @@ class PdoDriver implements Driver
 
         $colums = array_keys($schema->getColums());
 
-        foreach ($colums as $indexCol) {
-            $keys[] = $indexCol;
-            $values[] = ":" . $indexCol;
-        }
+
 
         if ($schema->getJsonDataCol() !== null) {
             $keys[] = $schema->getJsonDataCol();
             $values[] = ":" . $schema->getJsonDataCol();
+        } else {
+            foreach ($colums as $indexCol) {
+                $keys[] = $indexCol;
+                $values[] = ":" . $indexCol;
+            }
         }
 
         return [$keys, $values];
