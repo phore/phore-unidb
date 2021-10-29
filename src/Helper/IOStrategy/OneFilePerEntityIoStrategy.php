@@ -34,39 +34,43 @@ class OneFilePerEntityIoStrategy implements IOStrategy
         $tableSchema = $uniDb->schema->getSchema($tableName);
 
         foreach ($srcArchive->list($tableSchema->getTableName()) as $file) {
-            if (pathinfo($file, PATHINFO_EXTENSION) !== $this->fileExtension) {
-                $result->warnings[] = "Ignoring: '$file' - extension does not match '$this->fileExtension'";
-                continue;
+            try {
+                if (pathinfo($file, PATHINFO_EXTENSION) !== $this->fileExtension) {
+                    $result->warnings[] = "Ignoring: '$file' - extension does not match '$this->fileExtension'";
+                    continue;
+                }
+                $fileNameId = pathinfo($file, PATHINFO_FILENAME);
+                switch(pathinfo($file, PATHINFO_EXTENSION)) {
+                    case "yaml":
+                    case "yml":
+                        $data = yaml_parse($srcArchive->getContents($file));
+                        break;
+                    case "json":
+                        $data = json_decode($srcArchive->getContents($file));
+                        break;
+                    default:
+                        $data = $srcArchive->getContents($file);
+
+                }
+
+                if ($this->importFilter !== null)
+                    $data = ($this->importFilter)(data: $data, fileNameId: $fileNameId, file: $file);
+
+                if ($data === null)
+                    continue;
+
+                if ($this->validate) {
+                    $data = $tableSchema->hydrateEntity($data);
+                }
+
+                $uniDb->insert($data, $tableName, true);
+                $result->recordsProcessed++;
+                $result->recordsUpdated++;
+                if ($progress !== null)
+                    $progress($result);
+            } catch (\Exception $e) {
+                throw new \Exception("Import error on file '$file': {$e->getMessage()}", 0, $e);
             }
-            $fileNameId = pathinfo($file, PATHINFO_FILENAME);
-            switch(pathinfo($file, PATHINFO_EXTENSION)) {
-                case "yaml":
-                case "yml":
-                    $data = yaml_parse($srcArchive->getContents($file));
-                    break;
-                case "json":
-                    $data = json_decode($srcArchive->getContents($file));
-                    break;
-                default:
-                    $data = $srcArchive->getContents($file);
-
-            }
-
-            if ($this->importFilter !== null)
-                $data = ($this->importFilter)(data: $data, fileNameId: $fileNameId, file: $file);
-
-            if ($data === null)
-                continue;
-
-            if ($this->validate) {
-                $data = $tableSchema->hydrateEntity($data);
-            }
-
-            $uniDb->insert($data, $tableName, true);
-            $result->recordsProcessed++;
-            $result->recordsUpdated++;
-            if ($progress !== null)
-                $progress($result);
         }
         return $result;
     }

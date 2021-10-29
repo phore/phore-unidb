@@ -35,8 +35,13 @@ class FilesystemArchive implements Archive
         if ($files === false)
             throw new \InvalidArgumentException("Cannot read index vom directory: '$this->path'");
         $ret = [];
+        if (startsWith( $prefix, "/"))
+            $prefix = substr($prefix, 1);
         foreach ($files as $file) {
+
             $name = str_replace("//", "/", substr($file, strlen($this->path)));
+            if (startsWith($name, "/"))
+                $name = substr($name, 1);
             echo $name;
             if ($prefix !== null && ! str_starts_with($name, $prefix))
                 continue;
