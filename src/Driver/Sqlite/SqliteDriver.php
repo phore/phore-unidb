@@ -86,6 +86,13 @@ class SqliteDriver extends Driver\PDO\PdoDriver
             $stmts .= "\n" . self::buildCreateTableStmt($tableSchema);
         }
 
+        if (preg_match("/^sqlite:(?<file>.*)$/", $this->connectionString, $matches)) {
+            if ($matches["file"] !== ":memory:") {
+                touch($matches["file"]);
+                chmod($matches["file"], 0666);
+            }
+        }
+
         $this->PDO->exec($stmts);
         return $stmts;
     }

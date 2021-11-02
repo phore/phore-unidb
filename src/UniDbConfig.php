@@ -18,7 +18,7 @@ class UniDbConfig
         if (str_starts_with($connection, "sqlite:")) {
             if ( ! in_array("sqlite", \PDO::getAvailableDrivers()))
                 throw new \RuntimeException("Sqlite driver not installed. Make sure php has sqlite extension enabled.");
-            $driver = new SqliteDriver(new \PDO($connection));
+            $driver = new SqliteDriver($connection);
         } else {
             throw new \InvalidArgumentException("No driver available for $connection");
         }

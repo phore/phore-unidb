@@ -14,11 +14,19 @@ class PdoDriver implements Driver
 
     protected Schema $schema;
 
+    protected ?string $connectionString;
     public $lastQuery;
 
+
+
     public function __construct(
-        public \PDO $PDO
-    ){}
+        public \PDO|string $PDO
+    ){
+        if (is_string($this->PDO)) {
+            $this->connectionString = $this->PDO;
+            $this->PDO = new \PDO($this->connectionString);
+        }
+    }
 
 
     public function setSchema(Schema $schema)
