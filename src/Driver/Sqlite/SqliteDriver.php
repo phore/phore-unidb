@@ -87,13 +87,19 @@ class SqliteDriver extends Driver\PDO\PdoDriver
         }
 
         if (preg_match("/^sqlite:(?<file>.*)$/", $this->connectionString, $matches)) {
-            if ($matches["file"] !== ":memory:") {
+            $dbFile = $matches["file"];
+
+            if ($dbFile === ":memory:") {
+                $this->PDO->exec($stmts);
+            } else if (! file_exists($dbFile)) {
                 touch($matches["file"]);
                 chmod($matches["file"], 0666);
+                $this->PDO->exec($stmts);
             }
+        } else {
+            $this->PDO->exec($stmts);
         }
 
-        $this->PDO->exec($stmts);
         return $stmts;
     }
 }
