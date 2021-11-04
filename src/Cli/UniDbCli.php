@@ -65,6 +65,11 @@ class UniDbCli
                     $this->import(array_shift($argv));
                     break;
 
+                case "create_schema":
+                    UniDbConfig::get()->driver->createSchema();
+                    echo "Schema created.";
+                    break;
+
             }
         }
     }
