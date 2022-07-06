@@ -29,7 +29,10 @@ class Csv
         if ($data === false)
             throw new \InvalidArgumentException("Error reading first line from '$this->fileOrDescriptor'");
 
-        $mapArray = $data;
+        $mapArray = [];
+        foreach ($data as $key)
+            $mapArray[] = trim($key);
+
 
         if (count($mapArray) < 1)
             throw new \InvalidArgumentException("Csv file must contain at least 1 Column (one separator '$this->separator')");
