@@ -32,7 +32,7 @@ class Csv
         $mapArray = [];
         // Remove Windows Invisible Chars from Input
         foreach ($data as $key)
-            $mapArray[] = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $key);
+            $mapArray[] = str_replace("\xef\xbb\xbf", '', $key);
 
 
         if (count($mapArray) < 1)
