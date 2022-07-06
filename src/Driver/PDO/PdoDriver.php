@@ -134,7 +134,8 @@ class PdoDriver implements Driver
         $tableSchema = $this->schema->getSchema($table);
 
         $stmtSql = "";
-        if ($stmt !== null) {
+        print_r ($stmt);
+        if ($stmt !== null && $stmt->hasStmts()) {
             $stmtSql = " WHERE " . $stmt->parseSql($this->PDO);
         }
 

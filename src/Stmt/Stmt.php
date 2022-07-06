@@ -15,6 +15,10 @@ class Stmt
         $this->stmts = $stmts;
     }
 
+    public function hasStmts() : bool
+    {
+        return count($this->stmts) > 0;
+    }
 
     protected function buildSql(\PDO $pdo) : array
     {
