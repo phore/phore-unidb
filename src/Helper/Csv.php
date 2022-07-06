@@ -30,8 +30,9 @@ class Csv
             throw new \InvalidArgumentException("Error reading first line from '$this->fileOrDescriptor'");
 
         $mapArray = [];
+        // Remove Windows Invisible Chars from Input
         foreach ($data as $key)
-            $mapArray[] = trim($key);
+            $mapArray[] = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $key);
 
 
         if (count($mapArray) < 1)
