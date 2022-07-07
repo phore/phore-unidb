@@ -15,7 +15,7 @@ class PdoDriver implements Driver
     protected Schema $schema;
 
     protected ?string $connectionString;
-    public $lastQuery;
+    public array $lastQuery;
 
 
 
@@ -87,12 +87,11 @@ class PdoDriver implements Driver
 
             $sqlStmt = "INSERT {$replaceSql}INTO {$schema->getTableName()} (" . implode(", ", $keys) . ") VALUES (" .
                 implode(", ", $values) . ");";
-            echo $sqlStmt;
             $this->stmtCache_Insert[$table . $replaceExisting] = $this->PDO->prepare($sqlStmt);
         }
 
         $stmt = $this->stmtCache_Insert[$table . $replaceExisting];
-        $this->lastQuery = $stmt->queryString;
+        $this->lastQuery = ["q" => $stmt->queryString, "data" => (array)$data];
         $stmt->execute((array)$data);
     }
 
@@ -113,7 +112,7 @@ class PdoDriver implements Driver
         }
 
         $stmt = $this->stmtCache_Update[$table];
-        $this->lastQuery = $stmt->queryString;
+        $this->lastQuery = ["q" => $stmt->queryString, "data" => (array)$data];
         $stmt->execute((array)$data);
     }
 
@@ -175,7 +174,7 @@ class PdoDriver implements Driver
 
 
         $sql = "SELECT {$selectSql} FROM {$tableSchema->getTableName()} $stmtSql $limitSql";
-        $this->lastQuery = $sql;
+        $this->lastQuery = ["q" => $sql, "data" => []];
 
         try {
             $query = $this->PDO->query($sql);
@@ -191,4 +190,10 @@ class PdoDriver implements Driver
     {
         throw new \BadMethodCallException("Cannot destroySchema() on PDODriver. Not implemented.");
     }
+
+    public function getLastQuery(): array
+    {
+        return $this->lastQuery;
+    }
+
 }

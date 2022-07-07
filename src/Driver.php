@@ -29,4 +29,7 @@ interface Driver
         ?string $orderBy = null, string $orderType="ASC"
     ) : UniDbResult;
 
+
+    public function getLastQuery() : array;
+
 }

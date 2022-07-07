@@ -271,4 +271,10 @@ class UniDb
         return $ret;
     }
 
+
+    public function getLastQuery() : array
+    {
+        return $this->driver->getLastQuery();
+    }
+
 }
