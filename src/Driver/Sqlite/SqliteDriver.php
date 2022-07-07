@@ -77,7 +77,7 @@ class SqliteDriver extends Driver\PDO\PdoDriver
         ));
         $stmt .= implode(",\n", $cols) . "\n);\n";
         $stmt .= implode("\n", self::_buildConstraints($tableSchema->getConstraints(), $tableSchema));
-        echo $stmt;
+
         return $stmt;
     }
 
