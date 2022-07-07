@@ -77,6 +77,8 @@ class EntitySchema extends TableSchema
         if (is_string($this->entity->pk))
             $this->entity->pk = [$this->entity->pk];
         foreach ($this->entity->pk as $pkProperty) {
+            if ( ! isset ($this->property[$pkProperty]))
+                throw new \InvalidArgumentException("Property '$pkProperty' is defined as primary key of '$className' but does not exist.");
             $primaryKeyColums[] = $this->property[$pkProperty]->column;
         }
 
