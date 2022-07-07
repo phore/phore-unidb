@@ -29,8 +29,10 @@ class Stmt
                 continue;
             }
             if (is_array($curStmt) && count($curStmt) === 3) {
-                if ( ! in_array($curStmt[1], ["=", "<>", "<", ">"]))
+                if ( ! in_array($curStmt[1], ["=", "<>", "<", ">", "~"]))
                     throw new \InvalidArgumentException("Invalid operator '{$curStmt[1]}' in stmt ". print_r($curStmt, true));
+                if ($curStmt[1] === "~")
+                    $curStmt[1] = " LIKE ";
                 $stmts[] = $curStmt[0] . $curStmt[1] . $pdo->quote($curStmt[2]);
                 continue;
             }
