@@ -142,7 +142,7 @@ class PdoDriver implements Driver
         $limitSql = "";
         if (($limit !== null && $limit > 0) || $count !== -1) {
             $sql = "SELECT COUNT(*) FROM {$tableSchema->getTableName()} {$stmtSql}" ;
-            $this->lastQuery = $sql;
+            $this->lastQuery = ["q" => $sql, "data" => []];
             try {
                 $query = $this->PDO->query($sql);
             } catch (\PDOException $e) {
