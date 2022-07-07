@@ -7,7 +7,11 @@ class UniDbIndex
 {
     public function __construct(
         public array $cols = [],
-        public string $type = "UNIQUE",
+        /**
+         * UNIQUE or INDEX
+         * @var string
+         */
+        public string $type = "INDEX",
         public ?string $name = null
     ){}
 }

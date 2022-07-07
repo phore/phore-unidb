@@ -91,8 +91,8 @@ class EntitySchema extends TableSchema
             tableName: $this->entity->table,
             pk_col: $primaryKeyColums,
             class: $className,
-            indexCols: $indexes,
             columns: $columns,
+            constraints: $indexes,
             jsonDataCol: $this->entity->json_data_col
         );
     }

@@ -48,6 +48,7 @@ class SqliteDriver extends Driver\PDO\PdoDriver
     private static function _buildConstraints(array $constraints, TableSchema $tableSchema) : array
     {
         $ret = [];
+
         foreach ($constraints as $constraint) {
             if ($constraint instanceof Index) {
                 $coldef = [];
@@ -76,6 +77,7 @@ class SqliteDriver extends Driver\PDO\PdoDriver
         ));
         $stmt .= implode(",\n", $cols) . "\n);\n";
         $stmt .= implode("\n", self::_buildConstraints($tableSchema->getConstraints(), $tableSchema));
+        echo $stmt;
         return $stmt;
     }
 
@@ -91,7 +93,7 @@ class SqliteDriver extends Driver\PDO\PdoDriver
             $this->PDO->exec($stmts);
             if ($dbFile !== ":memory:") {
                 chmod($dbFile, 0666);
-            } 
+            }
         } else {
             $this->PDO->exec($stmts);
         }
