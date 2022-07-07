@@ -122,20 +122,21 @@ class UniDb
      *
      * @template T
      * @param null $stmt
-     * @param class-string<T>|string|null $table
+     * @param class-string<T>|null $table
      * @param int|null $page
      * @param int|null $limit
      * @param string|null $orderBy
      * @param string $orderType
      * @param string|bool $cast
      * @param string[]|null $select
-     * @param bool $pkOnly      Return only the plain PrimaryKey
-     * @return T[]
+     * @param bool $pkOnly Return only the plain PrimaryKey
+     * @param int|null $count
+     * @return \Generator<T>
      */
     public function query(
         $stmt = null, string $table = null, ?int $page = null, ?int $limit = null,
         ?string $orderBy = null, string $orderType="ASC", string|bool $cast = false, array $select = null,
-        bool $pkOnly = false, ?int &$count = -1) : \Generator
+        bool $pkOnly = false, ?int &$count = -1, string|null $groupBy=null) : \Generator
     {
         if ($page !== null && $limit === null)
             throw new \InvalidArgumentException("If 'limit' argument is required if 'page' argument is set.");
@@ -150,7 +151,7 @@ class UniDb
 
         $this->result = $this->driver->query(
             $this->getTableName($table),
-            $stmt, $page, $limit, $orderBy, $orderType, $select, $pkOnly, $count
+            $stmt, $page, $limit, $orderBy, $orderType, $select, $pkOnly, $count, $groupBy
         );
         return $this->result->each($cast);
     }
@@ -166,7 +167,7 @@ class UniDb
      * @return T|array
      * @throws EmptyResultException
      */
-    public function select(array|Stmt $stmt=null, string|array $byPrimaryKey=null, array $byKeyValue=null, string $table=null, bool $cast = false)
+    public function select(array|Stmt $stmt=null, string|object|array $byPrimaryKey=null, array $byKeyValue=null, string $table=null, bool $cast = false)
     {
         $tableSchema = $this->schema->getSchema($this->getTableName($table));
 
@@ -177,20 +178,22 @@ class UniDb
         }
         if ($byPrimaryKey !== null) {
             $pkNames = $tableSchema->getPkCols();
-            if (count ($pkNames) === 1) {
-                if ( ! is_string($byPrimaryKey))
-                    throw new \InvalidArgumentException("Argument byPrimaryKey is expected to be string.");
-                $stmt->append([$pkNames[0], "=", $byPrimaryKey]);
-            } elseif (count ($pkNames) > 1) {
-                if ( ! is_array($byPrimaryKey))
-                    throw new \InvalidArgumentException("Argument byPrimaryKey must be of type array on multi column primary keys");
-                foreach ($pkNames as $pkName) {
-                    if ( ! isset ($byPrimaryKey[$pkName]))
-                        throw new \InvalidArgumentException("Argument byPrimaryKey is missing key '$pkName'");
-                    $stmt->append([$pkName, "=", $byPrimaryKey[$pkName]]);
-                }
-            } else {
+            if (count ($pkNames) === 0)
                 throw new \InvalidArgumentException("Cannot select byPrimaryKey. No Primary Key defined");
+
+            if (is_string($byPrimaryKey)) {
+                if (count($pkNames) > 1)
+                    throw new \InvalidArgumentException("Argument byPrimaryKey is string but primary key of table '$table' has multiple pk columns.");
+                $byPrimaryKey = [$pkNames[0] => $byPrimaryKey];
+            }
+            if (is_object($byPrimaryKey))
+                $byPrimaryKey = (array)$byPrimaryKey;
+            if ( ! is_array($byPrimaryKey))
+                throw new \InvalidArgumentException("Argument byPrimaryKey must be of type array on multi column primary keys");
+            foreach ($pkNames as $pkName) {
+                if ( ! isset ($byPrimaryKey[$pkName]))
+                    throw new \InvalidArgumentException("Argument byPrimaryKey is missing key '$pkName'");
+                $stmt->append([$pkName, "=", $byPrimaryKey[$pkName]]);
             }
         }
 

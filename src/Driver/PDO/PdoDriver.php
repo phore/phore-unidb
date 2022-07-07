@@ -127,7 +127,7 @@ class PdoDriver implements Driver
     public function query(
         string $table, Stmt $stmt = null, ?int $page = null, ?int $limit = null,
         ?string $orderBy = null, string $orderType="ASC", array $select = null, bool $pkOnly = false,
-        ?int &$count = -1
+        ?int &$count = -1, string|null $groupBy=null
     ) : PdoDriverResult
     {
         $tableSchema = $this->schema->getSchema($table);
@@ -135,6 +135,12 @@ class PdoDriver implements Driver
         $stmtSql = "";
         if ($stmt !== null && $stmt->hasStmts()) {
             $stmtSql = " WHERE " . $stmt->parseSql($this->PDO);
+        }
+
+        $stmtGroupBy = "";
+        if ($groupBy !== null) {
+            $tableSchema->getColums()[$groupBy] ?? throw new \InvalidArgumentException("Invalid group by column '$groupBy'");
+            $stmtGroupBy = " GROUP BY $groupBy";
         }
 
         $pagesTotal = null;
@@ -173,7 +179,7 @@ class PdoDriver implements Driver
 
 
 
-        $sql = "SELECT {$selectSql} FROM {$tableSchema->getTableName()} $stmtSql $limitSql";
+        $sql = "SELECT {$selectSql} FROM {$tableSchema->getTableName()} $stmtSql $stmtGroupBy $limitSql";
         $this->lastQuery = ["q" => $sql, "data" => []];
 
         try {
