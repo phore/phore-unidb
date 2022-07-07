@@ -50,6 +50,17 @@ class UniDb
         return $unidb;
     }
 
+    /**
+     * Delete the Database and all data
+     *
+     * @return void
+     */
+    public function destroySchema()
+    {
+        $this->driver->destroySchema();
+    }
+
+
     public function createSchema() : string
     {
         return $this->driver->createSchema();

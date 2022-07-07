@@ -12,6 +12,8 @@ interface Driver
 
     public function setSchema(Schema $schema);
 
+    public function destroySchema();
+
     /**
      * Create the schema and apply it to the database
      *

@@ -187,6 +187,8 @@ class PdoDriver implements Driver
     }
 
 
-
-
+    public function destroySchema()
+    {
+        throw new \BadMethodCallException("Cannot destroySchema() on PDODriver. Not implemented.");
+    }
 }

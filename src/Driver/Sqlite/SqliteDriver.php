@@ -100,4 +100,13 @@ class SqliteDriver extends Driver\PDO\PdoDriver
 
         return $stmts;
     }
+
+    public function destroySchema()
+    {
+        if (preg_match("/^sqlite:(?<file>.*)$/", $this->connectionString, $matches)) {
+            $dbFile = $matches["file"];
+            unlink($dbFile);
+            $this->PDO = new \PDO($this->connectionString);
+        }
+    }
 }
